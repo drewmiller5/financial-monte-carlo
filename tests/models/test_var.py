@@ -54,3 +54,19 @@ def test_var_reasonable_magnitude():
     # 95% 1-day VaR on $100K portfolio should be well under $10K
     result = VaRModel(**SIMPLE_INPUTS).run()
     assert result["var"] < 10_000
+
+
+def test_weights_not_summing_to_one_raises():
+    bad_weights = np.array([0.4, 0.4, 0.4])  # sums to 1.2
+    with pytest.raises(ValueError, match="weights must sum to 1.0"):
+        VaRModel(**{**SIMPLE_INPUTS, "weights": bad_weights})
+
+
+def test_non_positive_definite_cov_raises():
+    singular_cov = np.array([
+        [1.0, 1.0, 0.0],
+        [1.0, 1.0, 0.0],
+        [0.0, 0.0, 1.0],
+    ])
+    with pytest.raises(ValueError, match="positive-definite"):
+        VaRModel(**{**SIMPLE_INPUTS, "returns_cov": singular_cov}).run()
