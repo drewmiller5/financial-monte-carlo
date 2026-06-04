@@ -50,3 +50,11 @@ def test_ci_90_ordered():
     result = DCFModel(**BASE_INPUTS).run()
     lo, hi = result["ci_90"]
     assert lo < hi
+
+
+def test_near_zero_spread_does_not_crash():
+    # terminal_growth mean nearly equals discount_rate mean — guard must hold
+    result = DCFModel(
+        **{**BASE_INPUTS, "terminal_growth": (0.09, 0.001), "discount_rate": (0.10, 0.001)}
+    ).run()
+    assert result["p10"] > 0

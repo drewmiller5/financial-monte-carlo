@@ -10,6 +10,11 @@ class DCFModel:
 
     Each assumption is a distribution, not a point estimate.
     Outputs a range of enterprise valuations (p10/p50/p90) in $M.
+
+    Simplification: operating_margin is used as an FCF margin proxy
+    (revenue × margin = FCF). This is appropriate for asset-light or
+    services businesses. Capital-intensive businesses should adjust for
+    capex before passing operating_margin.
     """
 
     def __init__(
@@ -23,6 +28,8 @@ class DCFModel:
         n: int = 10_000,
         seed: int | None = None,
     ):
+        if revenue <= 0:
+            raise ValueError(f"revenue must be positive, got {revenue}")
         self.revenue = revenue
         self.revenue_growth = Triangular(*revenue_growth)
         self.operating_margin = Triangular(*operating_margin)
@@ -43,25 +50,18 @@ class DCFModel:
         # Ensure terminal growth < discount rate to avoid infinite terminal value
         tg_samples = np.minimum(tg_samples, r_samples - 0.01)
 
-        valuations = np.zeros(n)
-        for i in range(n):
-            g  = g_samples[i]
-            m  = m_samples[i]
-            r  = r_samples[i]
-            tg = tg_samples[i]
+        # Vectorized: broadcast over (years, n) simultaneously
+        yr = np.arange(1, self.years + 1)[:, None]              # (years, 1)
+        rev_at_yr = self.revenue * (1.0 + g_samples) ** yr      # (years, n)
+        fcf = rev_at_yr * m_samples                              # (years, n)
+        discount = (1.0 + r_samples) ** yr                       # (years, n)
+        pv = (fcf / discount).sum(axis=0)                        # (n,)
 
-            rev = self.revenue
-            pv = 0.0
-            for yr in range(1, self.years + 1):
-                rev *= (1.0 + g)
-                fcf = rev * m
-                pv += fcf / (1.0 + r) ** yr
+        rev_final = rev_at_yr[-1]                                # (n,)
+        terminal = (rev_final * m_samples * (1.0 + tg_samples)) / (r_samples - tg_samples)
+        pv += terminal / (1.0 + r_samples) ** self.years
 
-            terminal = (rev * m * (1.0 + tg)) / (r - tg)
-            pv += terminal / (1.0 + r) ** self.years
-            valuations[i] = pv
-
-        result = SimulationResult(values=valuations, n=n)
+        result = SimulationResult(values=pv, n=n)
         lo, hi = result.confidence_interval(10, 90)
 
         return {
