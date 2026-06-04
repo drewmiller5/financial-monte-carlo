@@ -3,6 +3,8 @@ import numpy as np
 
 class Normal:
     def __init__(self, mean: float, std: float):
+        if std <= 0:
+            raise ValueError(f"Normal requires std > 0, got {std}")
         self.mean = mean
         self.std = std
 
@@ -13,6 +15,8 @@ class Normal:
 class Lognormal:
     """mean and std are parameters of the underlying normal distribution."""
     def __init__(self, mean: float, std: float):
+        if std <= 0:
+            raise ValueError(f"Lognormal requires std > 0, got {std}")
         self.mean = mean
         self.std = std
 
@@ -36,6 +40,8 @@ class Triangular:
 class Beta:
     """Beta distribution — bounded [0, 1], useful for probabilities and rates."""
     def __init__(self, alpha: float, beta_param: float):
+        if alpha <= 0 or beta_param <= 0:
+            raise ValueError(f"Beta requires alpha > 0 and beta_param > 0, got ({alpha}, {beta_param})")
         self.alpha = alpha
         self.beta_param = beta_param
 
@@ -45,6 +51,8 @@ class Beta:
 
 class Uniform:
     def __init__(self, low: float, high: float):
+        if low >= high:
+            raise ValueError(f"Uniform requires low < high, got ({low}, {high})")
         self.low = low
         self.high = high
 
