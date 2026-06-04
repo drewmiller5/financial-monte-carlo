@@ -20,3 +20,6 @@ packages = ["mc"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.coverage.run]
+omit = ["mc/__main__.py"]  # CLI entry point tested via subprocess — coverage.py can't instrument it

@@ -28,4 +28,4 @@ jobs:
         run: pytest --tb=short -q
 
       - name: Coverage check
-        run: pytest --cov=mc --cov-fail-under=75 --tb=short -q
+        run: pytest --cov=mc --cov-fail-under=90 --tb=short -q
