@@ -69,3 +69,34 @@ def test_engine_seed_reproducibility():
     r1 = MonteCarloEngine(n=100, seed=7).run(constant_model)
     r2 = MonteCarloEngine(n=100, seed=7).run(constant_model)
     np.testing.assert_array_equal(r1.values, r2.values)
+
+
+def test_simulation_result_at_threshold_probability():
+    # strict inequalities: values equal to threshold are counted by neither
+    values = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+    result = SimulationResult(values=values, n=5)
+    assert result.probability_above(3.0) == pytest.approx(0.4, abs=0.01)  # 4, 5
+    assert result.probability_below(3.0) == pytest.approx(0.4, abs=0.01)  # 1, 2
+    # the 0.2 gap is the at-threshold mass
+
+
+def test_simulation_result_n_mismatch_raises():
+    values = np.array([1.0, 2.0, 3.0])
+    with pytest.raises(ValueError, match="does not match"):
+        SimulationResult(values=values, n=999)
+
+
+def test_simulation_result_2d_array_raises():
+    values = np.array([[1.0, 2.0], [3.0, 4.0]])
+    with pytest.raises(ValueError, match="1-D"):
+        SimulationResult(values=values, n=4)
+
+
+def test_engine_seed_reproducibility_vectorized():
+    def vec_model(n):
+        # Note: uses engine.rng via closure — seed is set at engine init
+        return np.ones(n) * 42.0
+
+    r1 = MonteCarloEngine(n=100, seed=7).run_vectorized(vec_model)
+    r2 = MonteCarloEngine(n=100, seed=7).run_vectorized(vec_model)
+    np.testing.assert_array_equal(r1.values, r2.values)

@@ -9,6 +9,13 @@ class SimulationResult:
     values: np.ndarray
     n: int
 
+    def __post_init__(self):
+        if self.values.ndim != 1:
+            raise ValueError(f"SimulationResult requires 1-D values array, got shape {self.values.shape}")
+        if len(self.values) != self.n:
+            raise ValueError(f"n={self.n} does not match values length {len(self.values)}")
+        self.values.flags.writeable = False
+
     @property
     def p10(self) -> float:
         return float(np.percentile(self.values, 10))
@@ -27,6 +34,7 @@ class SimulationResult:
 
     @property
     def std(self) -> float:
+        """Population standard deviation (ddof=0) of simulated values."""
         return float(self.values.std())
 
     def confidence_interval(self, lower: float = 5.0, upper: float = 95.0) -> tuple[float, float]:
@@ -36,9 +44,11 @@ class SimulationResult:
         )
 
     def probability_above(self, threshold: float) -> float:
+        """Fraction of simulated values strictly greater than threshold."""
         return float((self.values > threshold).mean())
 
     def probability_below(self, threshold: float) -> float:
+        """Fraction of simulated values strictly less than threshold."""
         return float((self.values < threshold).mean())
 
     def summary(self) -> dict:
@@ -65,6 +75,10 @@ class MonteCarloEngine:
         return SimulationResult(values=values, n=self.n)
 
     def run_vectorized(self, model_fn: Callable[[int], np.ndarray]) -> SimulationResult:
-        """Run vectorized simulation: model_fn receives n, returns ndarray of shape (n,)."""
+        """Run vectorized simulation: model_fn receives n, returns ndarray of shape (n,).
+
+        model_fn should draw samples using self.rng (passed by reference through closure or
+        by accessing engine.rng directly on the engine instance).
+        """
         values = model_fn(self.n)
         return SimulationResult(values=values, n=self.n)
