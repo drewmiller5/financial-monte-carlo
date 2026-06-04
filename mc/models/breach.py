@@ -58,7 +58,7 @@ class BreachLikelihoodModel:
 
         sector = self.company_info.get("sector") or ""
         market_cap_m = self.company_info.get("market_cap_m") or 0
-        beta = float(self.company_info.get("beta") or 1.0)
+        market_beta = float(self.company_info.get("beta") or 1.0)
         rev_growth = float(self.company_info.get("rev_growth") or 0.0)
         peer_tickers = len({r["ticker"] for r in self.industry_rows}) if self.industry_rows else 0
 
@@ -87,10 +87,14 @@ class BreachLikelihoodModel:
             g_low = g_mode
         if g_mode > g_high:
             g_high = g_mode
-        f_growth = Triangular(g_low, g_mode, g_high).sample(rng, n).clip(0.0, 1.0)
+        # Degenerate case: all three collapse to the same value (e.g., very high growth >= 35%)
+        if g_low >= g_high:
+            f_growth = np.full(n, g_mode)
+        else:
+            f_growth = Triangular(g_low, g_mode, g_high).sample(rng, n).clip(0.0, 1.0)
 
         # Factor 5: Market beta — normal uncertainty around point estimate
-        beta_point = min(max(beta - 0.5, 0.0) / 1.5, 1.0)
+        beta_point = min(max(market_beta - 0.5, 0.0) / 1.5, 1.0)
         f_beta = Normal(beta_point, 0.08).sample(rng, n).clip(0.0, 1.0)
 
         raw = (
@@ -104,7 +108,8 @@ class BreachLikelihoodModel:
         result = SimulationResult(values=scores, n=n)
 
         p50 = result.p50
-        lo, hi = result.confidence_interval(5, 95)
+        lo, hi = result.confidence_interval(10, 90)
+        prob_critical_pct = round(result.probability_above(70) * 100, 1)
 
         return {
             "p10": round(result.p10),
@@ -114,8 +119,8 @@ class BreachLikelihoodModel:
             "std": round(result.std, 1),
             "ci_90": (round(lo), round(hi)),
             "tier": _tier(p50),
-            "prob_critical_pct": round(result.probability_above(70) * 100, 1),
-            "narrative": _narrative(self.company_info, result, peer_tickers),
+            "prob_critical_pct": prob_critical_pct,
+            "narrative": _narrative(self.company_info, result, peer_tickers, prob_critical_pct),
         }
 
 
@@ -129,12 +134,11 @@ def _tier(score: float) -> str:
     return "Low"
 
 
-def _narrative(info: dict, result: SimulationResult, peer_tickers: int) -> str:
+def _narrative(info: dict, result: SimulationResult, peer_tickers: int, prob_crit: float) -> str:
     name = info.get("name", "This company")
     p50 = round(result.p50)
     p10 = round(result.p10)
     p90 = round(result.p90)
-    prob_crit = round(result.probability_above(70) * 100, 1)
     tier = _tier(result.p50)
 
     spread = "Wide confidence interval — additional data would reduce uncertainty." if result.std > 14 else ""

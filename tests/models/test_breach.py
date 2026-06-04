@@ -70,3 +70,11 @@ def test_narrative_is_nonempty_string():
     result = model.run()
     assert isinstance(result["narrative"], str)
     assert len(result["narrative"]) > 20
+
+
+def test_extreme_revenue_growth_does_not_crash():
+    # Very high growth (>=35%) previously caused degenerate Triangular(1,1,1) ValueError
+    high_growth_info = {**HEALTHCARE_INFO, "rev_growth": 0.50}
+    model = BreachLikelihoodModel(high_growth_info, INDUSTRY_ROWS_NONE, n=1000, seed=0)
+    result = model.run()
+    assert result["p10"] >= 0
