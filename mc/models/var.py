@@ -81,4 +81,5 @@ class VaRModel:
             "p5_loss":         round(max(0.0, -np.percentile(pnl, 5.0)), 2),
             "p1_loss":         round(max(0.0, -np.percentile(pnl, 1.0)), 2),
             "prob_loss_pct":   round(result.probability_below(0.0) * 100.0, 1),
+            "pnl_scores":      pnl,
         }

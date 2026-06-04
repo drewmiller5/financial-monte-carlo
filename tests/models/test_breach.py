@@ -1,5 +1,5 @@
 import pytest
-from mc.models.breach import BreachLikelihoodModel
+from mc.models.breach import BreachLikelihoodModel, factor_contributions
 
 
 HEALTHCARE_INFO = {
@@ -78,3 +78,29 @@ def test_extreme_revenue_growth_does_not_crash():
     model = BreachLikelihoodModel(high_growth_info, INDUSTRY_ROWS_NONE, n=1000, seed=0)
     result = model.run()
     assert result["p10"] >= 0
+
+
+# ── factor_contributions ──────────────────────────────────────────────────────
+
+def test_factor_contributions_keys():
+    contribs = factor_contributions(HEALTHCARE_INFO, INDUSTRY_ROWS_NONE)
+    assert set(contribs.keys()) == {"Sector risk", "Company size", "Peer incidents", "Revenue growth", "Market beta"}
+
+
+def test_factor_contributions_sum_close_to_p50():
+    contribs = factor_contributions(HEALTHCARE_INFO, INDUSTRY_ROWS_NONE)
+    total = sum(contribs.values())
+    result = BreachLikelihoodModel(HEALTHCARE_INFO, INDUSTRY_ROWS_NONE, n=5000, seed=42).run()
+    # Deterministic point estimate sum should be within ~10 pts of the median
+    assert abs(total - result["p50"]) < 15
+
+
+def test_factor_contributions_all_nonnegative():
+    contribs = factor_contributions(HEALTHCARE_INFO, INDUSTRY_ROWS_MANY)
+    assert all(v >= 0 for v in contribs.values())
+
+
+def test_factor_contributions_high_peers_raises_peer_score():
+    few  = factor_contributions(HEALTHCARE_INFO, [])
+    many = factor_contributions(HEALTHCARE_INFO, INDUSTRY_ROWS_MANY)
+    assert many["Peer incidents"] > few["Peer incidents"]

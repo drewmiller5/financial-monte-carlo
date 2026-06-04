@@ -62,6 +62,13 @@ def test_weights_not_summing_to_one_raises():
         VaRModel(**{**SIMPLE_INPUTS, "weights": bad_weights})
 
 
+def test_pnl_scores_present_and_frozen():
+    result = VaRModel(**SIMPLE_INPUTS).run()
+    assert "pnl_scores" in result
+    assert len(result["pnl_scores"]) == SIMPLE_INPUTS["n"]
+    assert not result["pnl_scores"].flags.writeable
+
+
 def test_non_positive_definite_cov_raises():
     singular_cov = np.array([
         [1.0, 1.0, 0.0],

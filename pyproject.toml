@@ -7,10 +7,13 @@ name = "financial-monte-carlo"
 version = "0.1.0"
 description = "Monte Carlo risk simulation engine for finance, cyber risk, and model validation"
 requires-python = ">=3.11"
+license = {text = "MIT"}
 dependencies = ["numpy>=2.0"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "pytest-cov"]
+notebook = ["jupyter>=1.0", "matplotlib>=3.8", "pandas>=2.0"]
+app = ["streamlit>=1.35", "matplotlib>=3.8"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["mc"]

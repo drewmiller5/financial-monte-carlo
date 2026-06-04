@@ -70,7 +70,16 @@ class MonteCarloEngine:
         self.rng = np.random.default_rng(seed)
 
     def run(self, model_fn: Callable[[], float]) -> SimulationResult:
-        """Run N simulations of model_fn() → returns distribution of outcomes."""
+        """Run N simulations of a scalar model function.
+
+        Use this for custom models that produce one float per call and cannot
+        be vectorized. For the built-in models (BreachLikelihoodModel, DCFModel,
+        VaRModel, etc.) call their own .run() method directly — they use
+        run_vectorized internally and are 100-1000x faster at large n.
+
+        Note: model_fn must manage its own RNG; self.rng is not passed in.
+        For reproducible results, seed your RNG before calling this method.
+        """
         values = np.array([model_fn() for _ in range(self.n)])
         return SimulationResult(values=values, n=self.n)
 
