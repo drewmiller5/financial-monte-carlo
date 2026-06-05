@@ -335,7 +335,7 @@ elif mode == "💸 Cyber Breach Cost":
     st.title("💸 Cyber Breach Cost")
     st.markdown(
         "If a breach occurs, what does it cost? "
-        "Calibrated to IBM Cost of a Data Breach 2023. Run **Breach Likelihood** first to pre-fill the score."
+        "Calibrated to IBM Cost of a Data Breach 2025. Run **Breach Likelihood** first to pre-fill the score."
     )
 
     prev_score      = st.session_state.get("_score")

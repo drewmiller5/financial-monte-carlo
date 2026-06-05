@@ -3,32 +3,37 @@ import math
 import numpy as np
 from mc.engine import MonteCarloEngine, SimulationResult
 
-CALIBRATION_YEAR = 2023  # IBM Cost of a Data Breach source year
+CALIBRATION_YEAR = 2025  # IBM Cost of a Data Breach 2025 (Ponemon Institute)
 # Update _BASE_MU, _BASE_SIGMA, and SECTOR_LOG_ADJ when a new IBM annual report is published.
 
-# Base calibration: IBM Cost of a Data Breach 2023 — Healthcare sector reference.
-# Mean breach cost $10.93M for a typical small/mid healthcare company.
-# Log-normal parameters: mu=1.803, sigma=1.086 (CV ~1.5 — right-skewed, typical for breach costs).
-_BASE_MU = 1.803
+# Base calibration: IBM Cost of a Data Breach 2025 — Healthcare sector reference.
+# Mean breach cost $7.42M (12th consecutive year as highest-cost industry).
+# Log-normal parameters: mu=1.414, sigma=1.086 (CV ~1.5 — right-skewed, typical for breach costs).
+# mu derived from: ln(7.42) - (1.086^2 / 2) = 2.004 - 0.590 = 1.414
+_BASE_MU = 1.414
 _BASE_SIGMA = 1.086
 
 # Sector log-scale adjustments (additive to mu; each +1 = ~2.7x median cost).
-# Derived from IBM 2023 sector mean costs relative to Healthcare baseline.
+# Derived from IBM 2025 sector mean costs relative to Healthcare $7.42M baseline.
+# Formula: ln(sector_cost / 7.42)
 SECTOR_LOG_ADJ: dict[str, float] = {
-    "Healthcare":             0.00,   # Reference: $10.93M IBM average
-    "Financial Services":    -0.62,   # IBM: ~$5.90M
-    "Finance":               -0.62,
-    "Technology":            -0.85,   # IBM: ~$4.66M
-    "Communication Services": -1.05,
-    "Consumer Discretionary": -1.22,
-    "Consumer Staples":      -1.29,
-    "Real Estate":           -1.36,
-    "Energy":                -1.11,   # IBM: ~$4.72M
-    "Industrials":           -1.29,
-    "Materials":             -1.40,
-    "Utilities":             -1.44,
+    "Healthcare":              0.00,   # Reference: $7.42M IBM 2025
+    "Financial Services":     -0.29,   # IBM 2025: $5.56M
+    "Finance":                -0.29,
+    "Industrials":            -0.39,   # IBM 2025: $5.00M (was -1.29 — major shift)
+    "Energy":                 -0.43,   # IBM 2025: $4.83M (was -1.11)
+    "Technology":             -0.44,   # IBM 2025: $4.79M (was -0.85)
+    "Pharmaceuticals":        -0.48,   # IBM 2025: $4.61M
+    "Communication Services": -0.68,   # IBM 2025: $3.75M (was -1.05)
+    "Consumer Discretionary": -0.69,   # IBM 2025: Consumer $3.72M proxy
+    "Consumer Staples":       -0.74,   # IBM 2025: Retail $3.54M proxy
+    "Retail":                 -0.74,   # IBM 2025: $3.54M
+    "Transportation":         -0.62,   # IBM 2025: $3.98M
+    "Real Estate":            -0.80,   # No direct IBM entry; interpolated
+    "Materials":              -0.85,   # No direct IBM entry; interpolated
+    "Utilities":              -0.90,   # IBM Energy definition includes utilities
 }
-DEFAULT_SECTOR_LOG_ADJ = -0.90
+DEFAULT_SECTOR_LOG_ADJ = -0.55   # IBM 2025 global avg $4.44M vs healthcare $7.42M
 
 
 def _size_log_adj(market_cap_m: float) -> float:
@@ -57,7 +62,7 @@ class CyberCostModel:
 
     Answers: "If this company suffers a breach, what does it cost?"
 
-    Calibrated to IBM Cost of a Data Breach 2023. Costs follow a log-normal
+    Calibrated to IBM Cost of a Data Breach 2025. Costs follow a log-normal
     distribution: right-skewed because most breaches are moderate in cost
     but a small fraction are catastrophic. Outputs p10/p50/p90 in $M.
 

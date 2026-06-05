@@ -4,23 +4,25 @@ import numpy as np
 from mc.distributions import Triangular, Normal, Beta
 from mc.engine import MonteCarloEngine, SimulationResult
 
-CALIBRATION_YEAR = 2023  # IBM Cost of a Data Breach + Verizon DBIR source year
+CALIBRATION_YEAR = 2026  # IBM Cost of a Data Breach 2025 + Verizon DBIR 2026
 
 # Three-point sector risk (low, mode, high) — calibrated to IBM/Ponemon + Verizon DBIR
 # Update SECTOR_RISK and CALIBRATION_YEAR when the annual IBM report is published.
+# DBIR 2026: 22,625 confirmed breaches across 145 countries (Oct 2024–Nov 2025).
 SECTOR_RISK: dict[str, tuple[float, float, float]] = {
-    "Healthcare":            (0.72, 0.87, 0.96),
-    "Financial Services":    (0.68, 0.83, 0.94),
-    "Finance":               (0.68, 0.83, 0.94),
-    "Technology":            (0.52, 0.70, 0.84),
-    "Communication Services":(0.50, 0.67, 0.80),
-    "Consumer Discretionary":(0.44, 0.60, 0.74),
-    "Consumer Staples":      (0.40, 0.55, 0.68),
-    "Real Estate":           (0.38, 0.55, 0.68),
-    "Energy":                (0.36, 0.52, 0.66),
-    "Industrials":           (0.34, 0.50, 0.64),
-    "Materials":             (0.30, 0.47, 0.62),
-    "Utilities":             (0.28, 0.44, 0.58),
+    "Healthcare":             (0.72, 0.87, 0.96),  # DBIR 2026: 1,438 breaches, 96.4% confirmation
+    "Financial Services":     (0.64, 0.79, 0.92),  # DBIR 2026: 34.1% confirmation, internal actors 22%→12%
+    "Finance":                (0.64, 0.79, 0.92),
+    "Industrials":            (0.62, 0.78, 0.91),  # DBIR 2026: #1 volume (2,713), third-party 61%
+    "Energy":                 (0.56, 0.72, 0.86),  # no direct DBIR sector; interpolated
+    "Technology":             (0.55, 0.71, 0.85),  # Information (NAICS 51): 1,099 breaches, 64.5% confirmation
+    "Pharmaceuticals":        (0.52, 0.68, 0.82),  # Professional services proxy
+    "Communication Services": (0.46, 0.62, 0.76),  # Information (NAICS 51) proxy
+    "Consumer Discretionary": (0.44, 0.60, 0.74),  # Retail (NAICS 44-45): nearly doubled to 806 breaches
+    "Consumer Staples":       (0.40, 0.55, 0.69),  # Retail proxy, lower exposure
+    "Real Estate":            (0.40, 0.57, 0.70),  # DBIR 2026: 98.8% confirmation rate
+    "Materials":              (0.32, 0.49, 0.63),  # Manufacturing data supports slight increase
+    "Utilities":              (0.48, 0.64, 0.78),  # DBIR 2026: 93.6% confirmation, espionage 71% — major shift
 }
 DEFAULT_SECTOR_RISK = (0.25, 0.50, 0.70)
 

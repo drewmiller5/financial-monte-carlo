@@ -1,6 +1,6 @@
-# Financial-Monte-Carlo
+# financial-monte-carlo
 
-Monte Carlo risk simulation engine for finance and cyber risk. 
+Monte Carlo risk simulation engine for finance and cyber risk.
 
 Point estimates in risk models are false precision. A breach likelihood score of
 "63/100" implies certainty that doesn't exist. A range of **44–81 (90% CI),
@@ -36,41 +36,27 @@ Using only public data available in **December 2023 — two months before the br
 
 ```
 Breach likelihood tier:  Critical           Actual: Critical breach occurred  ✓
-P(score >= 70):          71.3%              Actual: occurred                  ✓
-Dollar loss p50:         ~$2,280M           Actual H1 2024: $1,592M           ✓
-Dollar loss p90:         ~$9,100M           Actual FY2024:  $3,300M (near p75) *
-30-day VaR (95%):        6.5% drawdown      Actual: 9.9% (beyond VaR tail)    ✓
+P(score >= 70):          66.6%              Actual: occurred                  ✓
+Dollar loss p50:         ~$1,527M           Actual H1 2024: $1,592M           ✓
+Dollar loss p75:         ~$3,191M           Actual FY2024:  $3,300M           ✓
+Dollar loss p90:         ~$6,210M           Actual FY2024:  $3,300M (below p90) *
+30-day VaR (95%):        7.5% drawdown      Actual: 9.9% (beyond VaR tail)    ✓
 ```
 
 \* p90 is the 90th-percentile tail scenario — the outcome if full regulatory liability,
 systemic disruption, and reputational damage all materialized simultaneously. The actual
-$3.3B FY2024 cost landed near p75, confirming the range was correctly calibrated.
+$3.3B FY2024 cost landed at p75 ($3,191M), confirming the range was correctly calibrated.
 p90 is not a point forecast; it is a tail risk bound.
 
 Full retrospective: [`examples/change_healthcare_validation.ipynb`](examples/change_healthcare_validation.ipynb)
 
 ---
 
-## Web App
-
-A guided Streamlit UI runs all four models with sliders, dropdowns, and interactive charts — no Python knowledge required.
+## Quick start
 
 ```bash
-git clone https://github.com/drewmiller5/Financial-Monte-Carlo
-cd Financial-Monte-Carlo
-pip install -e ".[app]"
-streamlit run app.py
-```
-
-Opens at **http://localhost:8501**. Choose a model from the sidebar, fill in the inputs, and click **Run Model**.
-
----
-
-## Quick start (library)
-
-```bash
-git clone https://github.com/drewmiller5/Financial-Monte-Carlo
-cd Financial-Monte-Carlo
+git clone https://github.com/drewmiller5/financial-monte-carlo
+cd financial-monte-carlo
 pip install -e ".[dev]"        # core + pytest
 pip install -e ".[notebook]"   # + jupyter, matplotlib, pandas
 ```
@@ -94,9 +80,9 @@ result = BreachLikelihoodModel(
 ).run()
 
 print(result["tier"])               # Critical
-print(result["p50"])                # 74
-print(result["ci_90"])              # (65, 82)
-print(result["prob_critical_pct"])  # 71.3
+print(result["p50"])                # 72
+print(result["ci_90"])              # (65, 79)
+print(result["prob_critical_pct"])  # 66.6
 ```
 
 ### Cyber cost (dollar loss if breach occurs)
@@ -112,12 +98,12 @@ cost = CyberCostModel(
     seed=42,
 ).run()
 
-print(cost["p50"])    # ~$2,280M  (actual H1 2024: $1,592M)
-print(cost["p90"])    # ~$9,100M  (actual FY2024 estimate: $3,300M)
+print(cost["p50"])    # ~$1,527M  (actual H1 2024: $1,592M)
+print(cost["p90"])    # ~$6,210M  (actual FY2024: $3,300M below p90)
 print(cost["unit"])   # "$M"
 
 # Expected Annual Loss = p50 * P(breach) / 100
-# e.g. $2,280M * 0.713 = $1,626M/year — the cyber insurance pricing input
+# e.g. $1,527M * 0.666 = $1,017M/year — the cyber insurance pricing input
 ```
 
 ### Portfolio VaR
@@ -160,7 +146,7 @@ result = DCFModel(
 print(result["p50"])   # enterprise value in $M
 ```
 
-### Cyber-adjusted portfolio VaR (BreachIQ + Iron Standard bridge)
+### Cyber-adjusted portfolio VaR
 
 Connects breach likelihood directly to portfolio financial risk. Shows how much
 extra downside a cyber event adds on top of normal market risk.
@@ -245,8 +231,8 @@ All models share the same engine and return consistent shapes:
 
 | Model / parameter | Source |
 |------------------|--------|
-| Sector breach base rates | IBM Cost of a Data Breach 2023, Verizon DBIR 2023 |
-| Cyber cost — sector averages | IBM Cost of a Data Breach 2023 |
+| Sector breach base rates | IBM Cost of a Data Breach 2025, Verizon DBIR 2026 |
+| Cyber cost — sector averages | IBM Cost of a Data Breach 2025 |
 | Cyber cost — size scaling | Observed mega-breach costs (Equifax 2017, Anthem 2015, Change Healthcare 2024) |
 | VaR correlation structure | Cholesky decomposition; user supplies covariance matrix |
 | DCF inputs | User-specified; no market data dependency |
@@ -275,4 +261,3 @@ pytest --cov=mc       # with coverage
 - Python >= 3.11
 - numpy >= 2.0
 - (optional) jupyter, matplotlib, pandas — `pip install -e ".[notebook]"`
-- (optional) streamlit, plotly — `pip install -e ".[app]"` then `streamlit run app.py`
