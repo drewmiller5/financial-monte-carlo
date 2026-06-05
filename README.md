@@ -1,8 +1,6 @@
 # financial-monte-carlo
 
-Monte Carlo risk simulation engine for finance and cyber risk. Built to power
-[BreachIQ](https://breachiq.io) (cyber breach likelihood and cost) and
-[Iron Standard](https://ironstandard.io) (financial signal validation).
+Monte Carlo risk simulation engine for finance and cyber risk. 
 
 Point estimates in risk models are false precision. A breach likelihood score of
 "63/100" implies certainty that doesn't exist. A range of **44–81 (90% CI),

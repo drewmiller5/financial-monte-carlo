@@ -13,7 +13,7 @@ dependencies = ["numpy>=2.0"]
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "pytest-cov"]
 notebook = ["jupyter>=1.0", "matplotlib>=3.8", "pandas>=2.0"]
-app = ["streamlit>=1.35", "matplotlib>=3.8"]
+app = ["streamlit>=1.35", "plotly>=5.18"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["mc"]
