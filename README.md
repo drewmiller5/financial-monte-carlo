@@ -1,4 +1,4 @@
-# financial-monte-carlo
+# Financial-Monte-Carlo
 
 Monte Carlo risk simulation engine for finance and cyber risk. 
 
@@ -51,11 +51,26 @@ Full retrospective: [`examples/change_healthcare_validation.ipynb`](examples/cha
 
 ---
 
-## Quick start
+## Web App
+
+A guided Streamlit UI runs all four models with sliders, dropdowns, and interactive charts — no Python knowledge required.
 
 ```bash
-git clone https://github.com/drewmiller5/financial-monte-carlo
-cd financial-monte-carlo
+git clone https://github.com/drewmiller5/Financial-Monte-Carlo
+cd Financial-Monte-Carlo
+pip install -e ".[app]"
+streamlit run app.py
+```
+
+Opens at **http://localhost:8501**. Choose a model from the sidebar, fill in the inputs, and click **Run Model**.
+
+---
+
+## Quick start (library)
+
+```bash
+git clone https://github.com/drewmiller5/Financial-Monte-Carlo
+cd Financial-Monte-Carlo
 pip install -e ".[dev]"        # core + pytest
 pip install -e ".[notebook]"   # + jupyter, matplotlib, pandas
 ```
@@ -260,3 +275,4 @@ pytest --cov=mc       # with coverage
 - Python >= 3.11
 - numpy >= 2.0
 - (optional) jupyter, matplotlib, pandas — `pip install -e ".[notebook]"`
+- (optional) streamlit, plotly — `pip install -e ".[app]"` then `streamlit run app.py`

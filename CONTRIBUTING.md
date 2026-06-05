@@ -5,10 +5,18 @@ Bug reports, model improvements, and data source updates are welcome.
 ## Quick start
 
 ```bash
-git clone https://github.com/drewmiller5/financial-monte-carlo
-cd financial-monte-carlo
+git clone https://github.com/drewmiller5/Financial-Monte-Carlo
+cd Financial-Monte-Carlo
 pip install -e ".[dev]"
 pytest
+```
+
+To run the web app locally:
+
+```bash
+pip install -e ".[app]"
+streamlit run app.py
+# opens at http://localhost:8501
 ```
 
 ## What's in scope
@@ -31,7 +39,7 @@ pytest
 2. Return a dict with at minimum `p10`, `p50`, `p90`, `mean`, `std`, `ci_90`
 3. Export from `mc/models/__init__.py`
 4. Add tests in `tests/models/test_your_model.py`
-5. Run `pytest --cov=mc --cov-fail-under=75`
+5. Run `pytest --cov=mc --cov-fail-under=90`
 
 ## Updating calibration data
 
@@ -41,11 +49,11 @@ Breach report publishes, update both dicts and bump `CALIBRATION_YEAR`.
 
 ## Tests
 
-All PRs must pass CI (Python 3.11, 3.12, 3.13) and maintain ≥75% coverage.
+All PRs must pass CI (Python 3.11, 3.12, 3.13) and maintain ≥90% coverage.
 
 ```bash
 pytest --tb=short -q
-pytest --cov=mc --cov-fail-under=75 -q
+pytest --cov=mc --cov-fail-under=90 -q
 ```
 
 ## Code style
