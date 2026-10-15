@@ -43,7 +43,7 @@ def _size_log_adj(market_cap_m: float) -> float:
     higher regulatory penalties, and greater business interruption exposure.
     Calibrated to observed mega-breach outcomes:
       Equifax (2017): $1.4B total; Anthem (2015): $115M+ settlement;
-      Change Healthcare (2024): $1.6B H1, $3.3B FY projected.
+      Change Healthcare (2024): $3.09B FY2024 total loss (UNH, Jan 2025).
     """
     if market_cap_m >= 200_000:    # Mega-cap ($200B+)
         return math.log(250)
