@@ -26,32 +26,6 @@ risk domains.
 | `DCFModel` | What is this company worth under uncertainty? | Enterprise value range in $M |
 | `VaRModel` | What is the portfolio's downside at a given confidence level? | Dollar VaR + CVaR |
 
----
-
-## Validation: Change Healthcare (Feb 2024)
-
-The largest healthcare data breach in US history. 100 million Americans affected. $3.3B projected cost.
-
-Using only public data available in **December 2023 — two months before the breach:**
-
-```
-Breach likelihood tier:  Critical           Actual: Critical breach occurred  ✓
-P(score >= 70):          66.6%              Actual: occurred                  ✓
-Dollar loss p50:         ~$1,527M           Actual H1 2024: $1,592M           ✓
-Dollar loss p75:         ~$3,191M           Actual FY2024:  $3,300M           ✓
-Dollar loss p90:         ~$6,210M           Actual FY2024:  $3,300M (below p90) *
-30-day VaR (95%):        7.5% drawdown      Actual: 9.9% (beyond VaR tail)    ✓
-```
-
-\* p90 is the 90th-percentile tail scenario — the outcome if full regulatory liability,
-systemic disruption, and reputational damage all materialized simultaneously. The actual
-$3.3B FY2024 cost landed at p75 ($3,191M), confirming the range was correctly calibrated.
-p90 is not a point forecast; it is a tail risk bound.
-
-Full retrospective: [`examples/change_healthcare_validation.ipynb`](examples/change_healthcare_validation.ipynb)
-
----
-
 ## Quick start
 
 ```bash
