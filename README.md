@@ -1,4 +1,4 @@
-# financial-monte-carlo
+# Financial Monte Carlo
 
 Monte Carlo risk simulation engine for finance and cyber risk.
 
