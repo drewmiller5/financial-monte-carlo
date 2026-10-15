@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from mc.models.breach import BreachLikelihoodModel, SECTOR_RISK, factor_contributions
-from mc.models.cyber_cost import CyberCostModel
+from mc.models.fitted_cost import FittedCyberCostModel
 from mc.models.dcf import DCFModel
 from mc.models.var import VaRModel
 
@@ -334,11 +334,12 @@ if mode == "🔐 Breach Likelihood":
 elif mode == "💸 Cyber Breach Cost":
     st.title("💸 Cyber Breach Cost")
     st.markdown(
-        "If a breach occurs, what does it cost? "
-        "Calibrated to IBM Cost of a Data Breach 2025. Run **Breach Likelihood** first to pre-fill the score."
+        "If a material breach occurs, what does it cost? "
+        "IBM Cost of a Data Breach 2025 sector baseline, fitted to 51 publicly disclosed breach costs. "
+        "Backtested out-of-sample: the 80% range held the actual cost in 85–90% of cases; "
+        "the median is typically within about 2× of the actual."
     )
 
-    prev_score      = st.session_state.get("_score")
     prev_sector     = st.session_state.get("_sector", "Healthcare")
     prev_market_cap = st.session_state.get("_market_cap", 500.0)
 
@@ -353,32 +354,26 @@ elif mode == "💸 Cyber Breach Cost":
             help="Market capitalization in millions.",
         )
     with c2:
-        score = st.slider(
-            "Breach likelihood score (0–100)", 0, 100,
-            int(prev_score) if prev_score else 50,
-            help="From the Breach Likelihood model, or enter manually.",
+        st.caption(
+            "Inputs are sector and market cap only. Fitted on public companies' material breaches, "
+            "so it does not describe small incidents. Validation: `validation/fit_cost.py`."
         )
 
     if st.button("Run Model", type="primary", use_container_width=True):
         with st.spinner("Running 10,000 simulations…"):
-            res = CyberCostModel(
-                market_cap_m=market_cap, sector=sector,
-                breach_score=float(score), n=N,
-            ).run()
+            res = FittedCyberCostModel(market_cap_m=market_cap, sector=sector, n=N).run()
 
         st.markdown("### 💵 Projected Breach Cost")
-        eal = res["p50"] * score / 100
 
         fig = _hist(res["scores"], "Breach Cost Distribution", "Cost ($M)",
                     res["p10"], res["p50"], res["p90"])
         st.plotly_chart(fig, use_container_width=True)
 
-        c1, c2, c3, c4 = st.columns(4)
+        # No Expected Annual Loss: the likelihood score is an uncalibrated index, not a probability.
+        c1, c2, c3 = st.columns(3)
         c1.metric("Low estimate (p10)",  f"${res['p10']:,.0f}M")
-        c2.metric("Expected (p50)",      f"${res['p50']:,.0f}M")
+        c2.metric("Median (p50)",        f"${res['p50']:,.0f}M")
         c3.metric("Severe (p90)",        f"${res['p90']:,.0f}M")
-        c4.metric("Expected Annual Loss", f"${eal:,.0f}M",
-                  help="p50 cost × P(breach). Standard cyber insurance pricing input.")
 
         st.caption(
             "The long right tail represents catastrophic outcomes — regulatory fines, "

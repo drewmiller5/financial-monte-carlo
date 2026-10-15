@@ -1,0 +1,80 @@
+FX (USD per unit): AUD 2022=0.6951, AUD 2023=0.6644, EUR 2016=1.1072, EUR 2017=1.1301, GBP 2017=1.289, GBP 2025=1.3192, JPY 2011=0.012547, NOK 2019=0.113635
+
+Case                        mcap $B      p10      p50       p90      actual $M  pctile  in p10-p90
+--------------------------------------------------------------------------------------------------------
+TJX                            13.0        8       31       125            216     96%  NO
+Heartland Payment Systems+      1.0        3       13        53            129     98%  NO
+Target                         38.5        8       31       125        202-292     97%  NO
+Home Depot                    116.0       30      123       498        161-261     68%  yes
+Anthem*+                       33.7       15       61       248            170     83%  yes
+Merck                         162.3       38      151       615        330-740     86%  yes
+FedEx (TNT)                    49.6       10       41       168            400     98%  NO
+Mondelez                       68.5       29      117       474         84-187     53%  yes
+Equifax*                       14.2       10       41       168      778-1,400    100%  NO
+Capital One                    35.4       11       46       186        100-370     91%  yes
+Universal Health Services      12.4       15       61       248             67     53%  yes
+SolarWinds+                     5.7        3       13        53             49     89%  yes
+T-Mobile                      167.4       31      124       503        350-400     84%  yes
+Hanesbrands+                    5.8        2       10        42             35     87%  yes
+MGM Resorts                    12.9        8       31       125        100-110     87%  yes
+Clorox+                        17.3        7       29       118             59     74%  yes
+Johnson Controls+              43.9       10       41       168             27     35%  yes
+Change Healthcare (UNH)*      485.0      253    1,018     4,140          3,090     84%  yes
+Halliburton+                   32.4       10       40       162             35     45%  yes
+Coinbase                       66.5       46      183       743        180-400     64%  yes
+United Natural Foods            1.6        2       10        40          50-60     94%  NO
+AT&T+                         120.0       31      124       503            177     63%  yes
+Marks & Spencer                 9.6        2       10        42        198-396    100%  NO
+Henry Schein+                  10.8       15       61       248          72-98     61%  yes
+Yahoo+                         31.5       10       39       160            468     99%  NO
+Cognizant+                     34.0       10       39       160          50-70     64%  yes
+Blackbaud+                      3.9        3       13        53            119     98%  NO
+Nuance Communications           4.5        3       13        53             92     96%  NO
+Mr. Cooper+                     2.8        4       15        62             25     68%  yes
+loanDepot+                      1.1        4       15        62          12-17     48%  yes
+23andMe+                        1.0        5       20        83             35     69%  yes
+Sinclair Broadcast              2.4        3       10        42             74     96%  NO
+Brunswick                       5.2        2       10        42          43-48     91%  NO
+Maersk                         30.0       10       41       168        250-300     96%  NO
+Norsk Hydro                     9.2        2        9        35          74-85     98%  NO
+Saint-Gobain                   25.8       10       41       168         90-283     89%  yes
+Reckitt Benckiser              59.2       29      117       474            129     54%  yes
+EMC (RSA SecurID)+             37.5       10       39       160          66-81     72%  yes
+Global Payments                 3.7        3       13        53         94-141     98%  NO
+Rackspace                       2.8        3       13        53             11     44%  yes
+Dole                            0.9        0        2         8             10     94%  NO
+Fidelity National Financial     10.2       11       46       186           8-10      7%  NO
+First American Financial+       5.4        4       15        62             11     38%  yes
+Tenet Healthcare                8.8        5       20        83            100     93%  NO
+Sony (PlayStation Network)     36.0        8       31       125            176     94%  NO
+Sony Pictures+                 18.1        8       31       125             35     55%  yes
+Jaguar Land Rover (Tata Motors)+     32.4        8       31       125        259-343     98%  NO
+DISH Network                    7.5        3       10        42             30     84%  yes
+Conduent+                       0.7        1        3        11             25     98%  NO
+Medibank                        6.7        5       20        83          31-53     74%  yes
+Optus (Singtel)                28.3        8       31       126             97     85%  yes
+
+* in-sample (used to tune the size multiplier)   + lower bound (true cost likely higher)
+
+Underestimates (actual above model p90): 20   Overestimates (actual below model p10): 1
+
+ALL CASES (n=51), target coverage for an 80% interval = 80%
+  Model                  coverage 30/51 ( 59%)   median log10 err +0.51 (3.27x)   mean |log10 err| 0.55 (3.5x typical miss)
+  Baseline: constant     coverage 42/51 ( 82%)   median log10 err +0.01 (1.01x)   mean |log10 err| 0.42 (2.6x typical miss)
+  Baseline: size regr.   coverage 45/51 ( 88%)   median log10 err +0.04 (1.09x)   mean |log10 err| 0.32 (2.1x typical miss)
+
+OUT-OF-SAMPLE ONLY (n=48), target coverage for an 80% interval = 80%
+  Model                  coverage 28/48 ( 58%)   median log10 err +0.52 (3.35x)   mean |log10 err| 0.53 (3.4x typical miss)
+  Baseline: constant     coverage 41/48 ( 85%)   median log10 err -0.05 (0.89x)   mean |log10 err| 0.39 (2.4x typical miss)
+  Baseline: size regr.   coverage 44/48 ( 92%)   median log10 err +0.02 (1.04x)   mean |log10 err| 0.30 (2.0x typical miss)
+
+OUT-OF-SAMPLE, NO APPROXIMATED INPUTS (n=41), target coverage for an 80% interval = 80%
+  Model                  coverage 25/41 ( 61%)   median log10 err +0.50 (3.15x)   mean |log10 err| 0.51 (3.2x typical miss)
+  Baseline: constant     coverage 35/41 ( 85%)   median log10 err -0.12 (0.75x)   mean |log10 err| 0.40 (2.5x typical miss)
+  Baseline: size regr.   coverage 39/41 ( 95%)   median log10 err -0.12 (0.76x)   mean |log10 err| 0.30 (2.0x typical miss)
+
+OUT-OF-SAMPLE, NO APPROX, FULL COSTS ONLY (no lower bounds) (n=26), target coverage for an 80% interval = 80%
+  Model                  coverage 13/26 ( 50%)   median log10 err +0.58 (3.80x)   mean |log10 err| 0.59 (3.9x typical miss)
+  Baseline: constant     coverage 20/26 ( 77%)   median log10 err +0.06 (1.16x)   mean |log10 err| 0.38 (2.4x typical miss)
+  Baseline: size regr.   coverage 24/26 ( 92%)   median log10 err +0.05 (1.12x)   mean |log10 err| 0.26 (1.8x typical miss)
+

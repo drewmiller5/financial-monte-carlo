@@ -20,35 +20,68 @@ risk domains.
 
 | Model | What it answers | Output |
 |-------|----------------|--------|
-| `BreachLikelihoodModel` | How likely is this company to suffer a material breach? | Score 0–100, tier, 90% CI |
-| `CyberCostModel` | If a breach occurs, what does it cost? | Dollar loss p10/p50/p90 in $M |
+| `BreachLikelihoodModel` | How likely is this company to suffer a material breach? | Score 0–100 (uncalibrated index, not yet validated), tier, 90% CI |
+| `FittedCyberCostModel` | If a material breach occurs, what does it cost? | Dollar loss p10/p50/p90 in $M (backtested; see Validation) |
+| `CyberCostModel` | Original IBM-tier cost model, kept for comparison | Dollar loss p10/p50/p90 in $M (underestimates ~3–4×) |
 | `CyberVaRBridge` | How does breach risk change the portfolio's financial downside? | Baseline VaR, cyber-adjusted VaR, and incremental cyber contribution |
 | `DCFModel` | What is this company worth under uncertainty? | Enterprise value range in $M |
 | `VaRModel` | What is the portfolio's downside at a given confidence level? | Dollar VaR + CVaR |
 
 ---
 
-## Validation: Change Healthcare (Feb 2024)
+## Validation (in progress)
 
-The largest healthcare data breach in US history. 100 million Americans affected. $3.3B projected cost.
+> **Status:** The cyber breach **cost** model has been rebuilt and backtested against real disclosed breach costs. Results so far are encouraging but the test set is still small and growing — treat the numbers below as preliminary. The breach **likelihood** model has **not** been validated yet (see Limits).
 
-Using only public data available in **December 2023 — two months before the breach:**
+### What changed
+
+The original cost model scaled IBM's average breach cost (Cost of a Data Breach 2025) by hand-picked company-size tiers. A backtest on real breaches showed it **underestimated material public-company breaches by about 3–4×**, so it was replaced.
+
+The current model keeps IBM's sector costs as the starting point and fits the rest to data:
 
 ```
-Breach likelihood tier:  Critical           Actual: Critical breach occurred  ✓
-P(score >= 70):          66.6%              Actual: occurred                  ✓
-Dollar loss p50:         ~$1,527M           Actual H1 2024: $1,592M           ✓
-Dollar loss p75:         ~$3,191M           Actual FY2024:  $3,300M           ✓
-Dollar loss p90:         ~$6,210M           Actual FY2024:  $3,300M (below p90) *
-30-day VaR (95%):        7.5% drawdown      Actual: 9.9% (beyond VaR tail)    ✓
+ln(cost) = IBM sector baseline + a + b·ln(market cap / $10B) + correction + noise
 ```
 
-\* p90 is the 90th-percentile tail scenario — the outcome if full regulatory liability,
-systemic disruption, and reputational damage all materialized simultaneously. The actual
-$3.3B FY2024 cost landed at p75 ($3,191M), confirming the range was correctly calibrated.
-p90 is not a point forecast; it is a tail risk bound.
+- **Data:** 51 public-company breaches (2007–2025) with costs disclosed in SEC filings, annual reports or reporting that cites them. Every case lists its source in `validation/breach_cases.csv`.
+- **Inputs:** sector and market cap at the year-end *before* the breach was disclosed — only information available beforehand.
+- **Partial costs:** 22 cases only disclose part of the cost (e.g. settlements). These are treated as lower bounds, not as the full cost.
+- **Currencies:** non-USD costs are converted at Federal Reserve annual average rates (`validation/fx_rates.csv`).
+- **Correction:** the fitted median ran high on cases with complete costs; a level correction learned from the training data brings it back in line.
+- **Without IBM:** the model can be refit on the breach data alone (`--no-ibm`) and performs almost as well.
 
-Full retrospective: [`examples/change_healthcare_validation.ipynb`](examples/change_healthcare_validation.ipynb)
+### Results so far
+
+Every prediction below was made by a model that did not see that case.
+
+| Test | Old model | Current model |
+|---|---|---|
+| Leave-one-out, 27 cases with complete costs | 48% inside the 80% range; median ~4× too low | 89% inside the 80% range; median within ~1.0× on average; typical miss ~2× |
+| Time holdout: fit on breaches before 2024, predict 9 from 2024–25 | 5 of 9 inside the range | 9 of 9 inside the range; typical miss ~2× |
+| Blind test set (separate file, never used for fitting) | — | 5 of 5 inside the range — **only 5 cases so far** |
+
+How to read this:
+- The **80% range (p10–p90)** is the main output. If the model is well calibrated, about 80% of actual costs should land inside it.
+- **"Typical miss ~2×"** means the median estimate is usually within a factor of two of the actual cost — e.g. a $100M breach is typically estimated somewhere between $50M and $200M.
+- The leave-one-out correction was learned on the same 51 cases it is scored on, so that row is mildly optimistic. The time holdout learns the correction from pre-2024 data only.
+- Four of the five blind test cases were reviewed before the median correction was added; only one is a clean blind test of the current version. **The test set is being expanded** before its results are treated as conclusive.
+
+### Limits
+
+- **Small sample.** 51 training cases and 5 test cases. More cases will change the numbers.
+- **Material breaches only.** Fitted on public companies' disclosed breaches; it does not describe small incidents.
+- **Cost definitions vary.** Some disclosures include lost revenue, some are net of insurance, some are company estimates.
+- **Likelihood model not validated.** The 0–100 breach likelihood score is a weighted index, not a calibrated probability. Validating it requires data on companies that were *not* breached.
+- Not financial or insurance advice.
+
+### Reproduce
+
+```bash
+pip install -e ".[validation]"
+python validation/fit_cost.py        # refit + leave-one-out + time holdout
+python validation/test_holdout.py    # score the blind test set
+python validation/backtest_cost.py   # old model vs. simple baselines
+```
 
 ---
 
@@ -59,6 +92,7 @@ git clone https://github.com/drewmiller5/financial-monte-carlo
 cd financial-monte-carlo
 pip install -e ".[dev]"        # core + pytest
 pip install -e ".[notebook]"   # + jupyter, matplotlib, pandas
+pip install -e ".[validation]" # + scipy, to refit and backtest the cost model
 ```
 
 ### Breach likelihood
@@ -88,23 +122,20 @@ print(result["prob_critical_pct"])  # 66.6
 ### Cyber cost (dollar loss if breach occurs)
 
 ```python
-from mc.models.cyber_cost import CyberCostModel
+from mc.models.fitted_cost import FittedCyberCostModel
 
-cost = CyberCostModel(
-    market_cap_m=485_000,
+cost = FittedCyberCostModel(
+    market_cap_m=10_000,   # $10B company
     sector="Healthcare",
-    breach_score=74.0,   # from BreachLikelihoodModel
     n=100_000,
     seed=42,
 ).run()
 
-print(cost["p50"])    # ~$1,527M  (actual H1 2024: $1,592M)
-print(cost["p90"])    # ~$6,210M  (actual FY2024: $3,300M below p90)
-print(cost["unit"])   # "$M"
-
-# Expected Annual Loss = p50 * P(breach) / 100
-# e.g. $1,527M * 0.666 = $1,017M/year — the cyber insurance pricing input
+print(cost["p10"], cost["p50"], cost["p90"])   # ~42  ~139  ~467  ($M)
+print(cost["unit"])                            # "$M"
 ```
+
+Expected annual loss is intentionally not shown: the likelihood score is an uncalibrated index, not a probability.
 
 ### Portfolio VaR
 

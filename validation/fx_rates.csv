@@ -1,0 +1,14 @@
+currency,year,usd_per_unit,fed_g5a_value,fed_quote,source
+GBP,2017,1.2890,1.2890,USD per GBP,https://www.federalreserve.gov/releases/g5a/20200102/
+GBP,2025,1.3192,1.3192,USD per GBP,https://www.federalreserve.gov/releases/g5a/current/default.htm
+EUR,2016,1.1072,1.1072,USD per EUR,https://www.federalreserve.gov/releases/g5a/20170104/
+EUR,2017,1.1301,1.1301,USD per EUR,https://www.federalreserve.gov/releases/g5a/20200102/
+EUR,2019,1.1194,1.1194,USD per EUR,https://www.federalreserve.gov/releases/g5a/20200102/
+EUR,2020,1.1410,1.1410,USD per EUR,https://www.federalreserve.gov/releases/g5a/20230109/
+NOK,2019,0.113635,8.8001,NOK per USD,https://www.federalreserve.gov/releases/g5a/20200102/
+AUD,2022,0.6951,0.6951,USD per AUD,https://www.federalreserve.gov/releases/g5a/20230109/
+AUD,2023,0.6644,0.6644,USD per AUD,https://www.federalreserve.gov/releases/g5a/current/default.htm
+JPY,2011,0.012547,79.70,JPY per USD,https://www.federalreserve.gov/releases/g5a/20120103/
+DKK,2018,0.158401,6.3131,DKK per USD,https://www.federalreserve.gov/releases/g5a/20200102/
+DKK,2019,0.149918,6.6703,DKK per USD,https://www.federalreserve.gov/releases/g5a/20200102/
+DKK,2020,0.152835,6.5430,DKK per USD,https://www.federalreserve.gov/releases/g5a/20230109/

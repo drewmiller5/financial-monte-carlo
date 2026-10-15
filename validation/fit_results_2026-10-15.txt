@@ -1,0 +1,43 @@
+Fitted on 51 disclosed breaches (ln cost = IBM sector offset + a + b*ln(mcap/$10B) + sigma*z)
+
+  With IBM baseline    a=+3.90±0.16  b=0.49±0.10 (10x bigger company -> 3.1x cost)  sigma=0.92  | $10B healthcare: p10 $61M  p50 $202M  p90 $680M
+  No IBM (data only)   a=+4.83±0.16  b=0.50±0.10 (10x bigger company -> 3.1x cost)  sigma=0.92  | $10B healthcare: p10 $38M  p50 $124M  p90 $418M
+
+  Median correction from training residuals: x0.69
+  Saved IBM-baseline parameters -> mc\models\fitted_cost_params.json
+
+TEST 1 - LEAVE-ONE-OUT (target coverage 80%)
+  All cases (n=51)
+    Old IBM staircase      coverage 30/51 ( 59%)   median log10 err +0.51 (3.24x)   mean |log10 err| 0.54 (3.5x typical miss)
+    Fitted, IBM baseline   coverage 46/51 ( 90%)   median log10 err -0.23 (0.58x)   mean |log10 err| 0.36 (2.3x typical miss)
+    Fitted, IBM + correction coverage 46/51 ( 90%)   median log10 err -0.07 (0.85x)   mean |log10 err| 0.33 (2.1x typical miss)
+    Fitted, no IBM         coverage 44/51 ( 86%)   median log10 err -0.14 (0.72x)   mean |log10 err| 0.35 (2.2x typical miss)
+  No approximated inputs (n=43)
+    Old IBM staircase      coverage 26/43 ( 60%)   median log10 err +0.49 (3.12x)   mean |log10 err| 0.52 (3.3x typical miss)
+    Fitted, IBM baseline   coverage 39/43 ( 91%)   median log10 err -0.27 (0.54x)   mean |log10 err| 0.38 (2.4x typical miss)
+    Fitted, IBM + correction coverage 40/43 ( 93%)   median log10 err -0.10 (0.79x)   mean |log10 err| 0.33 (2.1x typical miss)
+    Fitted, no IBM         coverage 38/43 ( 88%)   median log10 err -0.31 (0.49x)   mean |log10 err| 0.37 (2.3x typical miss)
+  No approx, full costs only (n=27)
+    Old IBM staircase      coverage 13/27 ( 48%)   median log10 err +0.62 (4.17x)   mean |log10 err| 0.61 (4.1x typical miss)
+    Fitted, IBM baseline   coverage 23/27 ( 85%)   median log10 err -0.16 (0.69x)   mean |log10 err| 0.32 (2.1x typical miss)
+    Fitted, IBM + correction coverage 24/27 ( 89%)   median log10 err +0.00 (1.00x)   mean |log10 err| 0.30 (2.0x typical miss)
+    Fitted, no IBM         coverage 22/27 ( 81%)   median log10 err -0.13 (0.74x)   mean |log10 err| 0.31 (2.1x typical miss)
+
+TEST 2 - TIME HOLDOUT: fit on 42 cases before 2024-01, predict 9 later cases
+  Held-out cases (n=9)
+    Old IBM staircase      coverage  5/9 ( 56%)   median log10 err +0.48 (3.01x)   mean |log10 err| 0.56 (3.6x typical miss)
+    Fitted, IBM baseline   coverage  9/9 (100%)   median log10 err -0.09 (0.81x)   mean |log10 err| 0.35 (2.2x typical miss)
+    Fitted, IBM + correction x0.73 coverage  9/9 (100%)   median log10 err +0.05 (1.12x)   mean |log10 err| 0.34 (2.2x typical miss)
+    Fitted, no IBM         coverage  8/9 ( 89%)   median log10 err +0.02 (1.04x)   mean |log10 err| 0.33 (2.1x typical miss)
+
+  Held-out case                          p10     p50      p90     actual $M  in range
+  Change Healthcare (UNH)                217     824    3,143         3,090  yes
+  Halliburton+                            44     148      506            35  yes
+  Coinbase                                70     240      833       180-400  yes
+  United Natural Foods                     8      26       94         50-60  yes
+  AT&T+                                   62     214      766           177  yes
+  Marks & Spencer                         19      64      220       198-396  yes
+  loanDepot+                              10      35      127         12-17  yes
+  Jaguar Land Rover (Tata Motors)+        34     114      390       259-343  yes
+  Conduent+                                7      24       92            25  yes
+  + lower bound
